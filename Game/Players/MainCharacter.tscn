@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://cicqw2vl52xk8"]
+
+[ext_resource type="Script" path="res://Game/Players/MainCharacter.cs" id="1_6jd5j"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hlfas"]
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_1vcro"]
+
+[sub_resource type="SeparationRayShape3D" id="SeparationRayShape3D_71ybq"]
+
+[node name="MainCharacter" type="CharacterBody3D"]
+script = ExtResource("1_6jd5j")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_hlfas")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_1vcro")
+
+[node name="SA3DMain" type="SpringArm3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.906308, 0.422618, 0, -0.422618, 0.906308, 0, 0, 0)
+shape = SubResource("SeparationRayShape3D_71ybq")
+spring_length = 4.0
+
+[node name="C3DMain" type="Camera3D" parent="SA3DMain"]
+
+[node name="HorizontalPivot" type="Node3D" parent="."]
+
+[node name="VerticalPivot" type="Node3D" parent="HorizontalPivot"]
