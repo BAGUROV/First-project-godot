@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://cicqw2vl52xk8"]
+[gd_scene load_steps=6 format=3 uid="uid://cicqw2vl52xk8"]
 
 [ext_resource type="Script" uid="uid://73pfg55eifov" path="res://Game/Players/MainCharacter.cs" id="1_6jd5j"]
+[ext_resource type="PackedScene" uid="uid://jcfqr057xdld" path="res://Game/Players/rig.tscn" id="2_i82dk"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hlfas"]
 
@@ -15,6 +16,7 @@ script = ExtResource("1_6jd5j")
 shape = SubResource("CapsuleShape3D_hlfas")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+visible = false
 mesh = SubResource("CapsuleMesh_1vcro")
 
 [node name="SA3DMain" type="SpringArm3D" parent="."]
@@ -27,3 +29,7 @@ spring_length = 4.0
 [node name="HorizontalPivot" type="Node3D" parent="."]
 
 [node name="VerticalPivot" type="Node3D" parent="HorizontalPivot"]
+
+[node name="RigPivot" type="Node3D" parent="."]
+
+[node name="Rig" parent="RigPivot" instance=ExtResource("2_i82dk")]

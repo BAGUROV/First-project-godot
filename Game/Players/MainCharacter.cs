@@ -66,10 +66,10 @@ public partial class MainCharacter : CharacterBody3D
 			Input.MouseMode = MouseModeEnum.Visible;
 		if (Input.MouseMode == MouseModeEnum.Captured)
 			if (@event is InputEventMouseMotion)
-				{
-					_look = -(@event as InputEventMouseMotion).Relative * MouseSensitivity;
-					//GD.Print(_look);
-				}
+			{
+				_look = -(@event as InputEventMouseMotion).Relative * MouseSensitivity;
+				//GD.Print(_look);
+			}
 	}
 
 	private Vector3 GetMovementDirection()
