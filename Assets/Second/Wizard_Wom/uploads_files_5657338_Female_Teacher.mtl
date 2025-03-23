@@ -1,0 +1,25 @@
+# Blender 4.2.0 MTL File: 'Female_Teacher_Source.blend'
+# www.blender.org
+
+newmtl Body_Teacher_Female
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Kd C:/T_Body_Teacher_Female_Albedo.png
+map_Ns C:/T_Body_Teacher_Female_Roughness.png
+map_refl C:/T_Body_Teacher_Female_Metallic.png
+map_Bump -bm 1.000000 C:/T_Body_Teacher_Female_Normal.png
+
+newmtl Hair_Teacher_Female
+Ka 1.000000 1.000000 1.000000
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 3
+map_Kd C:/T_Hair_Teacher_Female_Color.png
+map_Ns C:/T_Hair_Teacher_Female_Roughness.png
+map_d C:/T_Hair_Teacher_Female_Alpha.png
+map_Bump -bm 1.000000 C:/T_Hair_Teacher_Female_Normal.png

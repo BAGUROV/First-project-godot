@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dppqrq27kijde"]
+[gd_scene load_steps=13 format=3 uid="uid://dppqrq27kijde"]
 
 [ext_resource type="PackedScene" uid="uid://cicqw2vl52xk8" path="res://Game/Players/MainCharacter.tscn" id="1_bwblf"]
 [ext_resource type="Texture2D" uid="uid://n5axqwmj0ua1" path="res://Assets/Second/Environment/Textures/planks.png" id="1_mvowi"]
@@ -25,6 +25,9 @@ glow_enabled = true
 albedo_texture = ExtResource("1_mvowi")
 uv1_scale = Vector3(20, 20, 20)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ajtiq"]
+albedo_color = Color(0.099986, 0.099986, 0.099986, 1)
+
 [node name="Level1" type="Node3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.88541, -0.0956585, 0.130328)
 
@@ -41,13 +44,14 @@ use_collision = true
 size = Vector3(50, 1, 50)
 material = SubResource("StandardMaterial3D_8tngq")
 
-[node name="CSGBox3D" type="CSGBox3D" parent="CSGBox3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.71727, 1.50017, 0)
-use_collision = true
-size = Vector3(1, 2.03223, 1)
-
 [node name="MainCharacter" parent="." instance=ExtResource("1_bwblf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.00001, 1, 11.9785)
+
+[node name="Monolith" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.71727, 2.01487, 0)
+use_collision = true
+size = Vector3(1, 4, 0.2)
+material = SubResource("StandardMaterial3D_ajtiq")
 
 [node name="MapBoundary" type="Node3D" parent="."]
 
