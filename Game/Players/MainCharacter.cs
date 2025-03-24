@@ -4,8 +4,8 @@ using static Godot.Input;
 
 public partial class MainCharacter : CharacterBody3D
 {
-	// Направление x/y/z, в которое игрок смотрит
-	private Vector3 _look = Vector3.Zero;
+	// Направление мыши игрока x/y
+	private Vector2 _look = Vector2.Zero;
 	// Направление игрока при атаке
 	private Vector3 _attackDirection = Vector3.Zero;
 	
@@ -62,9 +62,7 @@ public partial class MainCharacter : CharacterBody3D
 		{
 			if (@event is InputEventMouseMotion)
 			{
-				_look = new Vector3(-(@event as InputEventMouseMotion).Relative.X * MouseSensitivity,
-								-(@event as InputEventMouseMotion).Relative.Y * MouseSensitivity,
-								0);
+				_look = -(@event as InputEventMouseMotion).Relative * MouseSensitivity;
 				// GD.Print(_look);
 			}
 		}
@@ -85,7 +83,7 @@ public partial class MainCharacter : CharacterBody3D
 		VerticalPivot.Rotation = rotation;
 		
 		GetNode<SpringArm3D>("SmoothCameraArm").GlobalTransform = VerticalPivot.GlobalTransform;
-		_look = Vector3.Zero;
+		_look = Vector2.Zero;
 	}
 
 	private void HandleMovingPhysicsFrame(double delta, ref Vector3 velocity)
