@@ -4,7 +4,7 @@ using static Godot.Input;
 
 public partial class MainCharacter : CharacterBody3D
 {
-	// Направление x/y, в котором игрок смотрит
+	// Направление x/y/z, в которое игрок смотрит
 	private Vector3 _look = Vector3.Zero;
 	// Направление игрока при атаке
 	private Vector3 _attackDirection = Vector3.Zero;
@@ -46,36 +46,11 @@ public partial class MainCharacter : CharacterBody3D
 		
 		Vector3 velocity = Velocity;
 
-		// Add the gravity.
-		if (!IsOnFloor())
-		{
-			velocity += GetGravity() * (float)delta;
-		}
-
-		// Handle Jump.
-		if (Input.IsActionJustPressed("ui_accept") && IsOnFloor())
-		{
-			velocity.Y = JumpVelocity;
-		}
-
-		Vector3 direction = GetMovementDirection();
-		Rig.UpdateAnimationTree(direction);
-		if (direction != Vector3.Zero)
-		{
-			velocity.X = direction.X * Speed;
-			velocity.Z = direction.Z * Speed;
-			LookTowardDirection(direction, delta);
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
-		}
-
+		HandleMovingPhysicsFrame(delta, ref velocity);
+		HandleJumpingPhysicsFrame(delta, ref velocity);
 		HandleSlashingPhysicsFrame(delta, ref velocity);
 
 		Velocity = velocity;
-
 		MoveAndSlide();
 	}
 
@@ -84,26 +59,20 @@ public partial class MainCharacter : CharacterBody3D
 		if (@event.IsActionPressed("ui_cancel"))
 			Input.MouseMode = MouseModeEnum.Visible;
 		if (Input.MouseMode == MouseModeEnum.Captured)
+		{
 			if (@event is InputEventMouseMotion)
 			{
 				_look = new Vector3(-(@event as InputEventMouseMotion).Relative.X * MouseSensitivity,
 								-(@event as InputEventMouseMotion).Relative.Y * MouseSensitivity,
 								0);
-				//GD.Print(_look);
+				// GD.Print(_look);
 			}
+		}
 		if (Rig.IsIdle())
 		{
 			if(@event.IsActionPressed("Click"))
-				SlashAttack();
+				Rig.Travel("Slash");
 		}
-	}
-
-	private Vector3 GetMovementDirection()
-	{
-		Vector2 inputDir = Input.GetVector("MoveLeft", "MoveRight", "MoveForward", "MoveBack");
-		var input_vector =  new Vector3(inputDir.X, 0, inputDir.Y).Normalized();
-
-		return HorizontalPivot.GlobalTransform.Basis * input_vector;
 	}
 
 	private void FrameCameraRotation()
@@ -119,28 +88,32 @@ public partial class MainCharacter : CharacterBody3D
 		_look = Vector3.Zero;
 	}
 
-	private void LookTowardDirection(Vector3 direction, double delta)
+	private void HandleMovingPhysicsFrame(double delta, ref Vector3 velocity)
 	{
-		var targetTransform = RigPivot.GlobalTransform.LookingAt(RigPivot.GlobalPosition + direction, Vector3.Up, true);
-		
-		RigPivot.GlobalTransform = RigPivot.GlobalTransform.InterpolateWith(targetTransform, 1.0f - (float)Math.Exp(-AnimationDecay * delta));
+		Vector3 direction = GetMovementDirection();
+		Rig.UpdateAnimationTree(direction);
+		if (direction != Vector3.Zero)
+		{
+			velocity.X = direction.X * Speed;
+			velocity.Z = direction.Z * Speed;
+			LookTowardDirection(direction, delta);
+		}
+		else
+		{
+			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
+			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
+		}
 	}
 	
-	private void SlashAttack()
+	private void HandleJumpingPhysicsFrame(double delta, ref Vector3 velocity)
 	{
-		Rig.Travel("Slash");
+		// Гравитации
+		if (!IsOnFloor())
+			velocity += GetGravity() * (float)delta;
 
-		// Атака в направление камеры
-		Vector3 cameraDirection = -Camera.GlobalBasis.Z.Normalized();
-		_attackDirection = new Vector3(cameraDirection.X, 0, cameraDirection.Z).Normalized();
-
-		// Атака в направление модельки
-		// _attackDirection = GetMovementDirection();
-
-		// if (_attackDirection.IsZeroApprox())
-		// {	
-		// 	_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
-		// }
+		// Прыжок.
+		if (Input.IsActionJustPressed("ui_accept") && IsOnFloor())
+			velocity.Y = JumpVelocity;
 	}
 
 	private void HandleSlashingPhysicsFrame(double delta, ref Vector3 velocity)
@@ -148,9 +121,42 @@ public partial class MainCharacter : CharacterBody3D
 		if(!Rig.IsSlashing())
 			return;
 		
+		if(!Rig.IsMoving())
+		{
+			// Атака в направление камеры
+			Vector3 cameraDirection = -Camera.GlobalBasis.Z.Normalized();
+			_attackDirection = new Vector3(cameraDirection.X, 0, cameraDirection.Z).Normalized();
+		}
+		else
+		{
+			// Атака в направление модели
+			_attackDirection = GetMovementDirection();
+
+			if (_attackDirection.IsZeroApprox())
+			{	
+				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
+			}
+		}
+
+		// При ударе модель движется вперёд
 		velocity.X = _attackDirection.X * AttackMoveSpeed;
 		velocity.Z = _attackDirection.Z * AttackMoveSpeed;
 
 		LookTowardDirection(_attackDirection, delta);
+	}
+
+	private void LookTowardDirection(Vector3 direction, double delta)
+	{
+		var targetTransform = RigPivot.GlobalTransform.LookingAt(RigPivot.GlobalPosition + direction, Vector3.Up, true);
+		
+		RigPivot.GlobalTransform = RigPivot.GlobalTransform.InterpolateWith(targetTransform, 1.0f - (float)Math.Exp(-AnimationDecay * delta));
+	}
+
+	private Vector3 GetMovementDirection()
+	{
+		Vector2 inputDir = Input.GetVector("MoveLeft", "MoveRight", "MoveForward", "MoveBack");
+		var input_vector =  new Vector3(inputDir.X, 0, inputDir.Y).Normalized();
+
+		return HorizontalPivot.GlobalTransform.Basis * input_vector;
 	}
 }

@@ -35,7 +35,8 @@ public partial class Rig : Node3D
 
 	public void Travel(string AnimationName)
 		=> Playback.Travel(AnimationName);
-	
+	public bool IsMoving()
+		=> (float)ATree.Get(_runPath) == 1.0f;
 	public bool IsIdle()
 		=> Playback.GetCurrentNode() == "MoveSpace";
 	public bool IsSlashing()

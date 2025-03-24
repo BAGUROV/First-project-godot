@@ -29,7 +29,6 @@ uv1_scale = Vector3(20, 20, 20)
 albedo_color = Color(0.099986, 0.099986, 0.099986, 1)
 
 [node name="Level1" type="Node3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.88541, -0.0956585, 0.130328)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_q3vaj")
@@ -38,20 +37,20 @@ environment = SubResource("Environment_q3vaj")
 transform = Transform3D(-0.915663, -0.268434, 0.299175, 0, 0.744312, 0.667832, -0.401948, 0.611509, -0.681538, 2.01935, 0.944597, -0.911504)
 shadow_enabled = true
 
-[node name="CSGBox3D" type="CSGBox3D" parent="."]
+[node name="Floor" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 use_collision = true
 size = Vector3(50, 1, 50)
 material = SubResource("StandardMaterial3D_8tngq")
 
-[node name="MainCharacter" parent="." instance=ExtResource("1_bwblf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.00001, 1, 11.9785)
-
-[node name="Monolith" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.71727, 2.01487, 0)
+[node name="Monolith" type="CSGBox3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.71727, 2.51487, 0)
 use_collision = true
 size = Vector3(1, 4, 0.2)
 material = SubResource("StandardMaterial3D_ajtiq")
+
+[node name="MainCharacter" parent="." instance=ExtResource("1_bwblf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="MapBoundary" type="Node3D" parent="."]
 
