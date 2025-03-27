@@ -9,7 +9,7 @@ public partial class MainCharacter : CharacterBody3D
 	// Направление игрока при атаке
 	private Vector3 _attackDirection = Vector3.Zero;
 	
-	public const float Speed = 5.0f;
+	public float Speed = 5.0f;
 	public const float JumpVelocity = 4.5f;
 	// Синхронизация гравитации из настроек проекта с узлами RigidBody.
 	public Variant Gravity = ProjectSettings.GetSetting("physics/3d/default_gravity");
@@ -18,6 +18,7 @@ public partial class MainCharacter : CharacterBody3D
 	public Node3D VerticalPivot;
 	public Node3D RigPivot;
 	public Rig Rig;
+	public AttackCast Attack;
 	
 	[Export]
 	public float MouseSensitivity = 0.00075f;
@@ -38,6 +39,7 @@ public partial class MainCharacter : CharacterBody3D
 		Rig = GetNode<Rig>("RigPivot/Rig");
 		VerticalPivot = GetNode<Node3D>("HorizontalPivot/VerticalPivot");
 		Camera = GetNode<Camera3D>("SmoothCameraArm/C3DMain");
+		Attack = GetNode<AttackCast>("RigPivot/Rig/RayAttachment/AttackCast");
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -45,10 +47,12 @@ public partial class MainCharacter : CharacterBody3D
 		FrameCameraRotation();
 		
 		Vector3 velocity = Velocity;
+		Vector3 direction = GetMovementDirection();
+		Rig.UpdateAnimationTree(ref direction);
 
-		HandleMovingPhysicsFrame(delta, ref velocity);
-		HandleJumpingPhysicsFrame(delta, ref velocity);
+		HandleMovingPhysicsFrame(delta, ref velocity, ref direction);
 		HandleSlashingPhysicsFrame(delta, ref velocity);
+		HandleJumpingPhysicsFrame(delta, ref velocity);
 
 		Velocity = velocity;
 		MoveAndSlide();
@@ -61,14 +65,11 @@ public partial class MainCharacter : CharacterBody3D
 		if (Input.MouseMode == MouseModeEnum.Captured)
 		{
 			if (@event is InputEventMouseMotion)
-			{
 				_look = -(@event as InputEventMouseMotion).Relative * MouseSensitivity;
-				// GD.Print(_look);
-			}
 		}
-		if (Rig.IsIdle())
+		if (@event.IsActionPressed("Click"))
 		{
-			if(@event.IsActionPressed("Click"))
+			if(Rig.IsIdle())
 				Rig.Travel("Slash");
 		}
 	}
@@ -86,10 +87,11 @@ public partial class MainCharacter : CharacterBody3D
 		_look = Vector2.Zero;
 	}
 
-	private void HandleMovingPhysicsFrame(double delta, ref Vector3 velocity)
+	private void HandleMovingPhysicsFrame(double delta, ref Vector3 velocity, ref Vector3 direction)
 	{
-		Vector3 direction = GetMovementDirection();
-		Rig.UpdateAnimationTree(direction);
+		if(!Rig.IsIdle())
+			return;
+
 		if (direction != Vector3.Zero)
 		{
 			velocity.X = direction.X * Speed;
@@ -135,12 +137,14 @@ public partial class MainCharacter : CharacterBody3D
 				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
 			}
 		}
+		Attack.ClearExceptions();
 
 		// При ударе модель движется вперёд
 		velocity.X = _attackDirection.X * AttackMoveSpeed;
 		velocity.Z = _attackDirection.Z * AttackMoveSpeed;
 
 		LookTowardDirection(_attackDirection, delta);
+		Attack.DealDamage();
 	}
 
 	private void LookTowardDirection(Vector3 direction, double delta)

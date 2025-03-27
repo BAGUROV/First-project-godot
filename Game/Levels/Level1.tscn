@@ -1,7 +1,8 @@
-[gd_scene load_steps=13 format=3 uid="uid://dppqrq27kijde"]
+[gd_scene load_steps=14 format=3 uid="uid://dppqrq27kijde"]
 
-[ext_resource type="PackedScene" uid="uid://cicqw2vl52xk8" path="res://Game/Players/MainCharacter.tscn" id="1_bwblf"]
+[ext_resource type="PackedScene" uid="uid://cicqw2vl52xk8" path="res://Game/Players/Main/MainCharacter.tscn" id="1_bwblf"]
 [ext_resource type="Texture2D" uid="uid://n5axqwmj0ua1" path="res://Assets/Second/Environment/Textures/planks.png" id="1_mvowi"]
+[ext_resource type="PackedScene" uid="uid://dfjfbr1vtlhl2" path="res://Game/Players/Enemies/Villager.tscn" id="1_vvk4q"]
 [ext_resource type="PackedScene" uid="uid://c11fksujl1384" path="res://Assets/Second/Environment/wall-gate.glb" id="3_do8yh"]
 [ext_resource type="PackedScene" uid="uid://dqcvf2fynkpwx" path="res://Assets/Second/Environment/wall.glb" id="3_ie8jf"]
 [ext_resource type="PackedScene" uid="uid://c6hgds5m6c5p2" path="res://Assets/Second/Environment/barrels.glb" id="5_pvib4"]
@@ -30,6 +31,26 @@ albedo_color = Color(0.099986, 0.099986, 0.099986, 1)
 
 [node name="Level1" type="Node3D"]
 
+[node name="Enemies" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.1412, 1, -10.6366)
+
+[node name="Villager" parent="Enemies" instance=ExtResource("1_vvk4q")]
+
+[node name="Villager2" parent="Enemies" instance=ExtResource("1_vvk4q")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2786, 0, 0)
+
+[node name="Villager3" parent="Enemies" instance=ExtResource("1_vvk4q")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.41751, 0, 0)
+
+[node name="Villager4" parent="Enemies" instance=ExtResource("1_vvk4q")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.4535)
+
+[node name="Villager5" parent="Enemies" instance=ExtResource("1_vvk4q")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2786, 0, -3.4535)
+
+[node name="Villager6" parent="Enemies" instance=ExtResource("1_vvk4q")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.41751, 0, -3.4535)
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_q3vaj")
 
@@ -50,7 +71,7 @@ size = Vector3(1, 4, 0.2)
 material = SubResource("StandardMaterial3D_ajtiq")
 
 [node name="MainCharacter" parent="." instance=ExtResource("1_bwblf")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.45945, 1, 0)
 
 [node name="MapBoundary" type="Node3D" parent="."]
 

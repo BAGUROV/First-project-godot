@@ -8,6 +8,8 @@ public partial class Rig : Node3D
 
 	public AnimationTree ATree;
 	public AnimationNodeStateMachinePlayback Playback;
+	public Skeleton3D SkeletonRig;
+	public MeshInstance3D[] VillagerMesh;
 
 	[Export]
 	public double AnimationSpeed = 20.0f;
@@ -15,6 +17,12 @@ public partial class Rig : Node3D
 	public override void _Ready()
 	{
 		ATree = GetNode<AnimationTree>("AnimationTree");
+		SkeletonRig = GetNode<Skeleton3D>("CharacterRig/GameRig/Skeleton3D");
+		VillagerMesh = [ 
+			GetNode<MeshInstance3D>("CharacterRig/GameRig/Skeleton3D/Villager_01"), 
+			GetNode<MeshInstance3D>("CharacterRig/GameRig/Skeleton3D/Villager_02") 
+		];
+
 		Playback = (AnimationNodeStateMachinePlayback)ATree.Get("parameters/playback");
 		_runPath = "parameters/MoveSpace/blend_position";
 		_runWeightTarget = -1.0f;
@@ -25,7 +33,7 @@ public partial class Rig : Node3D
 		ATree.Set(_runPath, Mathf.MoveToward((float)ATree.Get(_runPath), _runWeightTarget, delta * AnimationSpeed));
 	}
 
-	public void UpdateAnimationTree(Vector3 direction)
+	public void UpdateAnimationTree(ref Vector3 direction)
 	{
 		if(direction.IsZeroApprox())
 			_runWeightTarget = -1.0f;
@@ -41,4 +49,12 @@ public partial class Rig : Node3D
 		=> Playback.GetCurrentNode() == "MoveSpace";
 	public bool IsSlashing()
 		=> Playback.GetCurrentNode() == "Slash";
+
+	public void SetActiveMesh(MeshInstance3D activeMesh)
+	{
+		foreach(MeshInstance3D item in SkeletonRig.GetChildren())
+			item.Visible = false;
+
+		activeMesh.Visible = true;
+	}
 }
