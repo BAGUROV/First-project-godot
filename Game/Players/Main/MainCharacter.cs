@@ -70,7 +70,7 @@ public partial class MainCharacter : CharacterBody3D
 		if (@event.IsActionPressed("Click"))
 		{
 			if(Rig.IsIdle())
-				Rig.Travel("Slash");
+				SlashAttack();
 		}
 	}
 
@@ -120,24 +120,6 @@ public partial class MainCharacter : CharacterBody3D
 	{
 		if(!Rig.IsSlashing())
 			return;
-		
-		if(!Rig.IsMoving())
-		{
-			// Атака в направление камеры
-			Vector3 cameraDirection = -Camera.GlobalBasis.Z.Normalized();
-			_attackDirection = new Vector3(cameraDirection.X, 0, cameraDirection.Z).Normalized();
-		}
-		else
-		{
-			// Атака в направление модели
-			_attackDirection = GetMovementDirection();
-
-			if (_attackDirection.IsZeroApprox())
-			{	
-				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
-			}
-		}
-		Attack.ClearExceptions();
 
 		// При ударе модель движется вперёд
 		velocity.X = _attackDirection.X * AttackMoveSpeed;
@@ -160,5 +142,28 @@ public partial class MainCharacter : CharacterBody3D
 		var input_vector =  new Vector3(inputDir.X, 0, inputDir.Y).Normalized();
 
 		return HorizontalPivot.GlobalTransform.Basis * input_vector;
+	}
+
+	private void SlashAttack()
+	{
+		Rig.Travel("Slash");
+
+		if(!Rig.IsMoving())
+		{
+			// Атака в направление камеры
+			Vector3 cameraDirection = -Camera.GlobalBasis.Z.Normalized();
+			_attackDirection = new Vector3(cameraDirection.X, 0, cameraDirection.Z).Normalized();
+		}
+		else
+		{
+			// Атака в направление модели
+			_attackDirection = GetMovementDirection();
+
+			if (_attackDirection.IsZeroApprox())
+			{	
+				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
+			}
+		}
+		Attack.ClearExceptions();
 	}
 }
