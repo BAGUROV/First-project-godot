@@ -9,7 +9,11 @@ public partial class AttackCast : RayCast3D
 			return;
 
 		var collider = GetCollider();
-		GD.Print(collider);
-		AddException((CollisionObject3D)collider);
+
+		if (collider is Villager villager)
+		{
+			villager.Health.TakeDamage(15.0f);
+			AddException((CollisionObject3D)collider);
+		}
 	}
 }

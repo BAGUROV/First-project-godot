@@ -4,6 +4,14 @@ using static Godot.Input;
 
 public partial class MainCharacter : CharacterBody3D
 {
+	// Флаг текущего режима камеры
+	private bool _isFirstPerson = false;
+	// Rotation SpringArm для третьего лица
+	private Vector3 _thirdPersonRotation = new Vector3(-25f * (float)(Math.PI / 180.0), 0, 0);
+	// Длина SpringArm для третьего лица
+	private const float ThirdPersonLength = 4.0f; 
+	// Длина SpringArm для первого лица
+	private const float FirstPersonLength = 0.0f; 	
 	// Направление мыши игрока x/y
 	private Vector2 _look = Vector2.Zero;
 	// Направление игрока при атаке
@@ -16,6 +24,7 @@ public partial class MainCharacter : CharacterBody3D
 	public Node3D HorizontalPivot;
 	public Camera3D Camera;
 	public Node3D VerticalPivot;
+	public Node3D HeadPosition;
 	public Node3D RigPivot;
 	public Rig Rig;
 	public AttackCast Attack;
@@ -160,9 +169,7 @@ public partial class MainCharacter : CharacterBody3D
 			_attackDirection = GetMovementDirection();
 
 			if (_attackDirection.IsZeroApprox())
-			{	
 				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
-			}
 		}
 		Attack.ClearExceptions();
 	}
