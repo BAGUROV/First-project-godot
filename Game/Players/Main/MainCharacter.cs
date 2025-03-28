@@ -9,9 +9,9 @@ public partial class MainCharacter : CharacterBody3D
 	// Rotation SpringArm для третьего лица
 	private Vector3 _thirdPersonRotation = new Vector3(-25f * (float)(Math.PI / 180.0), 0, 0);
 	// Длина SpringArm для третьего лица
-	private const float ThirdPersonLength = 4.0f; 
+	private const float _thirdPersonLength = 4.0f; 
 	// Длина SpringArm для первого лица
-	private const float FirstPersonLength = 0.0f; 	
+	private const float _firstPersonLength = -0.1f; 	
 	// Направление мыши игрока x/y
 	private Vector2 _look = Vector2.Zero;
 	// Направление игрока при атаке
@@ -21,6 +21,7 @@ public partial class MainCharacter : CharacterBody3D
 	public const float JumpVelocity = 4.5f;
 	// Синхронизация гравитации из настроек проекта с узлами RigidBody.
 	public Variant Gravity = ProjectSettings.GetSetting("physics/3d/default_gravity");
+	public SpringArm3D SpringCameraArm;
 	public Node3D HorizontalPivot;
 	public Camera3D Camera;
 	public Node3D VerticalPivot;
@@ -43,12 +44,17 @@ public partial class MainCharacter : CharacterBody3D
 	public override void _Ready()
 	{
 		Input.MouseMode = MouseModeEnum.Captured;
+
+		SpringCameraArm = GetNode<SpringArm3D>("SmoothCameraArm");
 		HorizontalPivot = GetNode<Node3D>("HorizontalPivot");
+		HeadPosition = GetNode<Node3D>("HorizontalPivot/HeadPosition");
 		RigPivot = GetNode<Node3D>("RigPivot");
 		Rig = GetNode<Rig>("RigPivot/Rig");
 		VerticalPivot = GetNode<Node3D>("HorizontalPivot/VerticalPivot");
 		Camera = GetNode<Camera3D>("SmoothCameraArm/C3DMain");
 		Attack = GetNode<AttackCast>("RigPivot/Rig/RayAttachment/AttackCast");
+
+		UpdateCameraMode();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -81,18 +87,41 @@ public partial class MainCharacter : CharacterBody3D
 			if(Rig.IsIdle())
 				SlashAttack();
 		}
+		if (@event.IsActionPressed("Camera"))
+		{
+			_isFirstPerson = !_isFirstPerson;
+			UpdateCameraMode();
+		}
 	}
 
 	private void FrameCameraRotation()
 	{
-		HorizontalPivot.RotateY(_look.X);
-		VerticalPivot.RotateX(_look.Y);
+		if (_isFirstPerson)
+		{
+			// В режиме первого лица поворачиваем только голову или саму камеру
+			Camera.RotateY(_look.X);
+			Camera.RotateX(_look.Y);
 
-		var rotation = VerticalPivot.Rotation;
-		rotation.X = (float)Math.Clamp(rotation.X, MinBoundary * (Math.PI/180.0), MaxBoundary * (Math.PI/180.0));
-		VerticalPivot.Rotation = rotation;
+			var rotationCamera = Camera.Rotation;
+			rotationCamera.X = (float)Math.Clamp(rotationCamera.X, MinBoundary * (Math.PI / 180.0), MaxBoundary * (Math.PI / 180.0));
+			Camera.Rotation = rotationCamera;
+
+			// Синхронизируем HorizontalPivot с камерой для движения
+			HorizontalPivot.GlobalRotation = new Vector3(0, Camera.GlobalRotation.Y, 0);
+		}
+		else
+		{
+			// В режиме третьего лица поворачиваем через HorizontalPivot и VerticalPivot
+			HorizontalPivot.RotateY(_look.X);
+			VerticalPivot.RotateX(_look.Y);
+
+			var rotation = VerticalPivot.Rotation;
+			rotation.X = (float)Math.Clamp(rotation.X, MinBoundary * (Math.PI/180.0), MaxBoundary * (Math.PI/180.0));
+			VerticalPivot.Rotation = rotation;
+			
+			SpringCameraArm.GlobalTransform = VerticalPivot.GlobalTransform;
+		}
 		
-		GetNode<SpringArm3D>("SmoothCameraArm").GlobalTransform = VerticalPivot.GlobalTransform;
 		_look = Vector2.Zero;
 	}
 
@@ -148,9 +177,18 @@ public partial class MainCharacter : CharacterBody3D
 	private Vector3 GetMovementDirection()
 	{
 		Vector2 inputDir = Input.GetVector("MoveLeft", "MoveRight", "MoveForward", "MoveBack");
-		var input_vector =  new Vector3(inputDir.X, 0, inputDir.Y).Normalized();
+		var inputVector = new Vector3(inputDir.X, 0, inputDir.Y).Normalized();
 
-		return HorizontalPivot.GlobalTransform.Basis * input_vector;
+		if (_isFirstPerson)
+		{
+			// Движение относительно направления камеры в режиме первого лица
+			return Camera.GlobalTransform.Basis * inputVector;
+		}
+		else
+		{
+			// Движение относительно HorizontalPivot в режиме третьего лица
+			return HorizontalPivot.GlobalTransform.Basis * inputVector;
+		}
 	}
 
 	private void SlashAttack()
@@ -172,5 +210,22 @@ public partial class MainCharacter : CharacterBody3D
 				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
 		}
 		Attack.ClearExceptions();
+	}
+	private void UpdateCameraMode()
+	{
+		if (_isFirstPerson)
+		{
+			// Режим первого лица
+			SpringCameraArm.SpringLength = _firstPersonLength;
+			Camera.GlobalTransform = HeadPosition.GlobalTransform;
+			SpringCameraArm.Rotation = Vector3.Zero;
+		}
+		else
+		{
+			// Режим третьего лица
+			SpringCameraArm.SpringLength = _thirdPersonLength;
+			SpringCameraArm.Rotation = _thirdPersonRotation; 
+			SpringCameraArm.GlobalTransform = VerticalPivot.GlobalTransform; 
+		}
 	}
 }
