@@ -4,14 +4,6 @@ using static Godot.Input;
 
 public partial class MainCharacter : CharacterBody3D
 {
-	// Флаг текущего режима камеры
-	private bool _isFirstPerson = false;
-	// Rotation SpringArm для третьего лица
-	private Vector3 _thirdPersonRotation = new Vector3(-25f * (float)(Math.PI / 180.0), 0, 0);
-	// Длина SpringArm для третьего лица
-	private const float ThirdPersonLength = 4.0f; 
-	// Длина SpringArm для первого лица
-	private const float FirstPersonLength = 0.0f; 	
 	// Направление мыши игрока x/y
 	private Vector2 _look = Vector2.Zero;
 	// Направление игрока при атаке
@@ -24,10 +16,11 @@ public partial class MainCharacter : CharacterBody3D
 	public Node3D HorizontalPivot;
 	public Camera3D Camera;
 	public Node3D VerticalPivot;
-	public Node3D HeadPosition;
 	public Node3D RigPivot;
 	public Rig Rig;
 	public AttackCast Attack;
+	public HealthComponent Health;
+	public CollisionShape3D Collision;
 	
 	[Export]
 	public float MouseSensitivity = 0.00075f;
@@ -39,6 +32,8 @@ public partial class MainCharacter : CharacterBody3D
 	public float AttackMoveSpeed = 3.0f;
 	[Export]
 	public double AnimationDecay = 15.0;
+	[Export]
+	public float MaxHealth = 30.0f;
 	
 	public override void _Ready()
 	{
@@ -49,6 +44,10 @@ public partial class MainCharacter : CharacterBody3D
 		VerticalPivot = GetNode<Node3D>("HorizontalPivot/VerticalPivot");
 		Camera = GetNode<Camera3D>("SmoothCameraArm/C3DMain");
 		Attack = GetNode<AttackCast>("RigPivot/Rig/RayAttachment/AttackCast");
+		Health = GetNode<HealthComponent>("HealthComponent");
+		Collision = GetNode<CollisionShape3D>("CollisionShape3D");
+
+		Health.UpdateMaxHealth(MaxHealth);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -172,5 +171,12 @@ public partial class MainCharacter : CharacterBody3D
 				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
 		}
 		Attack.ClearExceptions();
+	}
+
+	public void OnHealthComponentDefeat()
+	{
+		Rig.Travel("Defeat");
+		Collision.Disabled = true;
+		SetPhysicsProcess(false);
 	}
 }

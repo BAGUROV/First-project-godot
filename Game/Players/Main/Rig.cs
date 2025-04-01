@@ -6,6 +6,9 @@ public partial class Rig : Node3D
 	private string _runPath;
 	private float _runWeightTarget;
 
+	[Signal]
+	public delegate void HeavyAttackEventHandler();
+
 	public AnimationTree ATree;
 	public AnimationNodeStateMachinePlayback Playback;
 	public Skeleton3D SkeletonRig;
@@ -56,5 +59,11 @@ public partial class Rig : Node3D
 			item.Visible = false;
 
 		activeMesh.Visible = true;
+	}
+	
+	public void OnAnimationTreeAnimationFinished(string AnimationName)
+	{
+		if (AnimationName == "Overhead")
+			EmitSignal(SignalName.HeavyAttack);
 	}
 }
