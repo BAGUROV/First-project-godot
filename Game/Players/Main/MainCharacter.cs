@@ -10,8 +10,9 @@ public partial class MainCharacter : CharacterBody3D
 	private Vector3 _attackDirection = Vector3.Zero;
 	
 	public float Speed = 5.0f;
-	public const float JumpVelocity = 4.5f;
-	// Синхронизация гравитации из настроек проекта с узлами RigidBody.
+	public float JumpVelocity = 4.5f;
+	public double Decay = 8.0;
+	// Синхронизация гравитации из настроек проекта с узлами RigidBody
 	public Variant Gravity = ProjectSettings.GetSetting("physics/3d/default_gravity");
 	public Node3D HorizontalPivot;
 	public Camera3D Camera;
@@ -33,7 +34,9 @@ public partial class MainCharacter : CharacterBody3D
 	[Export]
 	public double AnimationDecay = 15.0;
 	[Export]
-	public float MaxHealth = 30.0f;
+	public float MaxHealth = 10.0f;
+	[Export]
+	public float Damage = 15.0f;
 	
 	public override void _Ready()
 	{
@@ -60,6 +63,7 @@ public partial class MainCharacter : CharacterBody3D
 
 		HandleMovingPhysicsFrame(delta, ref velocity, ref direction);
 		HandleSlashingPhysicsFrame(delta, ref velocity);
+		HandleOverheadPhysicsFrame(delta, ref velocity);
 		HandleJumpingPhysicsFrame(delta, ref velocity);
 
 		Velocity = velocity;
@@ -80,7 +84,30 @@ public partial class MainCharacter : CharacterBody3D
 			if(Rig.IsIdle())
 				SlashAttack();
 		}
+		if (@event.IsActionPressed("RightClick"))
+		{
+			if(Rig.IsIdle())
+				OverheadAttack();
+		}
 	}
+
+	public void OnHealthComponentDefeat()
+	{
+		Rig.Travel("Defeat");
+		Collision.Disabled = true;
+		SetPhysicsProcess(false);
+	}
+
+	public Vector3 GetMovementDirection()
+	{
+		Vector2 inputDir = Input.GetVector("MoveLeft", "MoveRight", "MoveForward", "MoveBack");
+		var input_vector =  new Vector3(inputDir.X, 0, inputDir.Y).Normalized();
+
+		return HorizontalPivot.GlobalTransform.Basis * input_vector;
+	}
+
+	public float ExponentialDecay(float a, float b, double decay, double delta)
+		=> (float)(b + (a - b) * Math.Exp(-decay * delta));
 
 	private void FrameCameraRotation()
 	{
@@ -97,20 +124,14 @@ public partial class MainCharacter : CharacterBody3D
 
 	private void HandleMovingPhysicsFrame(double delta, ref Vector3 velocity, ref Vector3 direction)
 	{
-		if(!Rig.IsIdle())
+		if(!Rig.IsIdle() && !Rig.IsDashing())
 			return;
 
+		velocity.X = ExponentialDecay(velocity.X, direction.X * Speed, Decay, delta);
+		velocity.Z = ExponentialDecay(velocity.Z, direction.Z * Speed, Decay, delta);
+
 		if (direction != Vector3.Zero)
-		{
-			velocity.X = direction.X * Speed;
-			velocity.Z = direction.Z * Speed;
 			LookTowardDirection(direction, delta);
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
-		}
 	}
 	
 	private void HandleJumpingPhysicsFrame(double delta, ref Vector3 velocity)
@@ -119,7 +140,7 @@ public partial class MainCharacter : CharacterBody3D
 		if (!IsOnFloor())
 			velocity += GetGravity() * (float)delta;
 
-		// Прыжок.
+		// Прыжок
 		if (Input.IsActionJustPressed("ui_accept") && IsOnFloor())
 			velocity.Y = JumpVelocity;
 	}
@@ -134,7 +155,20 @@ public partial class MainCharacter : CharacterBody3D
 		velocity.Z = _attackDirection.Z * AttackMoveSpeed;
 
 		LookTowardDirection(_attackDirection, delta);
-		Attack.DealDamage();
+		Attack.DealDamage(Damage);
+	}
+
+	private void HandleOverheadPhysicsFrame(double delta, ref Vector3 velocity)
+	{
+		if(!Rig.IsOverhead())
+			return;
+
+		// При ударе модель не движется
+		velocity.X = 0;
+		velocity.Z = 0;
+
+		LookTowardDirection(_attackDirection, delta);
+		Attack.DealDamage(Damage);
 	}
 
 	private void LookTowardDirection(Vector3 direction, double delta)
@@ -144,18 +178,24 @@ public partial class MainCharacter : CharacterBody3D
 		RigPivot.GlobalTransform = RigPivot.GlobalTransform.InterpolateWith(targetTransform, 1.0f - (float)Math.Exp(-AnimationDecay * delta));
 	}
 
-	private Vector3 GetMovementDirection()
-	{
-		Vector2 inputDir = Input.GetVector("MoveLeft", "MoveRight", "MoveForward", "MoveBack");
-		var input_vector =  new Vector3(inputDir.X, 0, inputDir.Y).Normalized();
-
-		return HorizontalPivot.GlobalTransform.Basis * input_vector;
-	}
-
 	private void SlashAttack()
 	{
 		Rig.Travel("Slash");
+		Damage = 10.0f;
+		ChangeCharacterDirection();
+		Attack.ClearExceptions();
+	}
 
+	private void OverheadAttack()
+	{
+		Rig.Travel("Overhead");
+		Damage = 20.0f;
+		ChangeCharacterDirection();
+		Attack.ClearExceptions();
+	}
+
+	private void ChangeCharacterDirection()
+	{
 		if(!Rig.IsMoving())
 		{
 			// Атака в направление камеры
@@ -170,13 +210,5 @@ public partial class MainCharacter : CharacterBody3D
 			if (_attackDirection.IsZeroApprox())
 				_attackDirection = Rig.GlobalBasis * new Vector3(0, 0, 1);
 		}
-		Attack.ClearExceptions();
-	}
-
-	public void OnHealthComponentDefeat()
-	{
-		Rig.Travel("Defeat");
-		Collision.Disabled = true;
-		SetPhysicsProcess(false);
 	}
 }

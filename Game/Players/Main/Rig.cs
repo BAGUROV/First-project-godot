@@ -52,6 +52,10 @@ public partial class Rig : Node3D
 		=> Playback.GetCurrentNode() == "MoveSpace";
 	public bool IsSlashing()
 		=> Playback.GetCurrentNode() == "Slash";
+	public bool IsOverhead()
+		=> Playback.GetCurrentNode() == "Overhead";
+	public bool IsDashing()
+		=> Playback.GetCurrentNode() == "Dash";
 
 	public void SetActiveMesh(MeshInstance3D activeMesh)
 	{

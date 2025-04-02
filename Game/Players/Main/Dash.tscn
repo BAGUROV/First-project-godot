@@ -1,0 +1,43 @@
+[gd_scene load_steps=7 format=3 uid="uid://dkub44i2dpmn0"]
+
+[ext_resource type="Script" uid="uid://cvy1o1yng4caa" path="res://Game/Players/Main/Dash.cs" id="1_t8g0n"]
+
+[sub_resource type="Curve" id="Curve_t8g0n"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), -3.25279, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_2h6d0"]
+curve = SubResource("Curve_t8g0n")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_0g2xy"]
+emission_shape_scale = Vector3(1, 0.25, 1)
+emission_shape = 1
+emission_sphere_radius = 0.5
+gravity = Vector3(0, 1, 0)
+damping_max = 1.0
+scale_min = 0.2
+scale_max = 0.4
+scale_curve = SubResource("CurveTexture_2h6d0")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_35kae"]
+albedo_color = Color(0.41598, 0.41598, 0.41598, 1)
+emission_enabled = true
+emission_energy_multiplier = 0.5
+
+[sub_resource type="SphereMesh" id="SphereMesh_f8sde"]
+material = SubResource("StandardMaterial3D_35kae")
+
+[node name="Dash" type="Node3D"]
+script = ExtResource("1_t8g0n")
+
+[node name="Timer" type="Timer" parent="."]
+one_shot = true
+
+[node name="GPUParticles3D" type="GPUParticles3D" parent="."]
+cast_shadow = 0
+emitting = false
+amount = 64
+lifetime = 0.5
+fixed_fps = 60
+process_material = SubResource("ParticleProcessMaterial_0g2xy")
+draw_pass_1 = SubResource("SphereMesh_f8sde")

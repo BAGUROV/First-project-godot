@@ -3,7 +3,7 @@ using System;
 
 public partial class AttackCast : RayCast3D
 {
-	public void DealDamage()
+	public void DealDamage(float damageIn)
 	{
 		if(!IsColliding())
 			return;
@@ -12,7 +12,12 @@ public partial class AttackCast : RayCast3D
 
 		if (collider is Villager villager)
 		{
-			villager.Health.TakeDamage(15.0f);
+			villager.Health.TakeDamage(damageIn);
+			AddException((CollisionObject3D)collider);
+		}
+		else if (collider is MainCharacter main)
+		{
+			main.Health.TakeDamage(damageIn);
 			AddException((CollisionObject3D)collider);
 		}
 	}
